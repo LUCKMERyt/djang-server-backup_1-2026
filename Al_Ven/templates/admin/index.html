@@ -1,0 +1,60 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block content %}
+<div class="sheet">
+
+  <div class="docbar">
+    <div class="docbar__inner">
+      <span>Документ: <b>Панель управления</b></span>
+      <span>Дата: <b>{% now "d.m.Y" %}</b></span>
+    </div>
+  </div>
+
+  <h1>{% translate "Панель управления" %}</h1>
+
+  {# --- Оптовый каталог --- #}
+  <section class="section">
+    <div class="section__bar"><b>Оптовый каталог</b></div>
+    <div class="section__body">
+      <div class="admin-home-tools">
+        <a class="btn btn--pearl btn--add" href="{% url 'admin:hello_products_add' %}">＋ {% translate "Новый товар" %}</a>
+        <a class="btn btn--pearl" href="{% url 'admin:hello_products_changelist' %}">{% translate "Перейти в каталог" %} →</a>
+      </div>
+      <div class="admin-home-sub">
+        <a href="{% url 'admin:hello_category_changelist' %}">{% translate "Категории" %}</a>
+        <span class="admin-home-dot">·</span>
+        <a href="{% url 'admin:hello_category_add' %}">{% translate "Новая категория" %}</a>
+      </div>
+    </div>
+  </section>
+
+  {# --- Команда --- #}
+  <section class="section">
+    <div class="section__bar"><b>Команда</b></div>
+    <div class="section__body">
+      <div class="admin-home-tools">
+        <a class="btn btn--pearl btn--add" href="{% url 'admin:hello_person_add' %}">♙ {% translate "Добавить сотрудника" %}</a>
+        <a class="btn btn--pearl" href="{% url 'admin:hello_person_changelist' %}">{% translate "Перейти в команду" %} →</a>
+      </div>
+    </div>
+  </section>
+
+  {# --- Отзывы --- #}
+  <section class="section">
+    <div class="section__bar"><b>Отзывы</b></div>
+    <div class="section__body">
+      <div class="admin-home-tools">
+        <a class="btn btn--pearl" href="{% url 'admin:hello_review_changelist' %}">{% translate "Перейти к отзывам" %} →</a>
+      </div>
+    </div>
+  </section>
+
+  {% if app_list %}
+  <div class="admin-home-title-2"><span>{% translate "Разделы управления" %}</span><span class="admin-home-line"></span></div>
+  {% comment %}Сюда добавить анонсы для других моделей, если появятся.{% endcomment %}
+  {% include "admin/app_list.html" with app_list=app_list show_changelinks=True %}
+  {% endif %}
+
+</div>
+{% endblock %}

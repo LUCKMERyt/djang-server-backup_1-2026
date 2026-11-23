@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+.venv/
+.env
+.env.*
+!.env.example
+*.log
+Al_Ven/db.sqlite3
+Al_Ven/staticfiles/
+# Временные файлы проверок и тестов
+Al_Ven/media/products/product_*.jpg
+Al_Ven/media/people/person_*.jpg
+*_out.txt
+*_report.txt

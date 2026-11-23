@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block title %}РЕГИСТРАЦИЯ{% endblock %}
+{% block doc_name %}Регистрация получателя{% endblock %}
+
+{% block content %}
+<div class="content_form">
+    <form method="post" autocomplete="off">
+        {% csrf_token %}
+
+        {{ form.non_field_errors }}
+
+        {% for field in form %}
+            <div>
+                {{ field.label_tag }}
+                {{ field }}
+                {{ field.errors }}
+            </div>
+        {% endfor %}
+
+        <p>
+            Есть аккаунт?
+            <a class="reg_but" href="{% url 'vhod' %}">Войти</a>
+        </p>
+
+        <button class="btn" type="submit">Зарегистрироваться</button>
+    </form>
+</div>
+{% endblock %}

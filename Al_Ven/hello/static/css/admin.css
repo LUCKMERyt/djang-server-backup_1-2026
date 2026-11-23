@@ -1,0 +1,676 @@
+/* ==========================================================================
+   Администрирование — оформление под основной стиль сайта (SOPHISTICATED,
+   «Ночной склад»): белый текст на тёмном, акцент-жемчуг (f6dce4 → bfe6dc →
+   b3c3f2), Owen с углами 0, таблицы и формы в документном стиле.
+   ========================================================================== */
+:root {
+    --adm-bg: #14181b;
+    --adm-panel: #1e2327;
+    --adm-deep: #0e1113;
+    --adm-line: rgba(246, 220, 228, 0.42);
+    --adm-text: #f1f3f0;
+    --adm-muted: #a9b1ab;
+    --adm-faint: rgba(241, 243, 240, 0.45);
+
+    --pearl-pink: #f6dce4;
+    --pearl-mint: #bfe6dc;
+    --pearl-blue: #b3c3f2;
+    --pearl: linear-gradient(110deg, var(--pearl-pink), var(--pearl-mint) 50%, var(--pearl-blue));
+    --pearl-mint-solid: #bfe6dc;
+
+    --font-head: "Oswald", Impact, "Arial Narrow", sans-serif;
+    --font-body: "IBM Plex Sans", system-ui, "Segoe UI", Arial, sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+
+    --adm-wrap: min(1200px, calc(100% - 32px));
+}
+
+/* ---------------- Базовые стили ---------------- */
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    background: var(--adm-bg);
+    color: var(--adm-text);
+    font-family: var(--font-body);
+    font-size: 17px;
+    line-height: 1.55;
+    min-width: 320px;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+main {
+    flex: 1 0 auto;
+}
+
+.container-fluid {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+}
+
+.content {
+    padding: 20px;
+}
+
+::selection {
+    color: var(--adm-bg);
+    background: var(--pearl-mint);
+}
+
+a {
+    color: var(--adm-text);
+}
+
+a:hover {
+    color: var(--pearl-pink);
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+    outline: 2px solid var(--pearl-mint);
+    outline-offset: 2px;
+}
+
+/* ---------------- Шапка ---------------- */
+.main-header {
+    background: rgba(30, 35, 39, 0.97) !important;
+    border-bottom: 2px solid rgba(246, 220, 228, 0.42);
+}
+
+.main-header .navbar-brand,
+.brand-link {
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 26px;
+    letter-spacing: 0.04em;
+    color: var(--adm-text);
+    text-decoration: none;
+}
+
+.main-header .nav-link,
+.main-header .navbar-brand {
+    color: var(--adm-muted);
+    font-weight: 600;
+}
+
+.main-header .nav-link:hover {
+    color: var(--adm-text);
+}
+
+/* ---------------- Боковая панель ---------------- */
+.main-sidebar,
+.main-sidebar .sidebar,
+.main-sidebar .brand-link,
+.main-sidebar nav,
+.main-sidebar .nav-sidebar,
+.main-sidebar::before {
+    background: var(--adm-panel);
+    border-color: var(--adm-line);
+}
+
+.main-sidebar .nav-sidebar .nav-link {
+    color: var(--adm-muted);
+    font-family: var(--font-head);
+    font-weight: 600;
+}
+
+.main-sidebar .nav-sidebar .nav-link:hover,
+.main-sidebar .nav-sidebar .nav-link.active,
+.main-sidebar .menu-open > .nav-link {
+    color: var(--adm-bg);
+    background: var(--pearl-mint-solid);
+}
+
+.main-sidebar .nav-sidebar .nav-header {
+    font-family: var(--font-mono);
+    color: var(--pearl-pink);
+    letter-spacing: 0.16em;
+    font-weight: 600;
+}
+
+/* ---------------- Заголовки ---------------- */
+.content-header,
+.card-title,
+.section__bar b {
+
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: -0.01em;
+    color: var(--adm-text);
+}
+
+/* Главные разделы лендинга (Оптовый каталог, Команда, Отзывы) — менее яркие. */
+.sheet > .section {
+    border-color: rgba(246, 220, 228, 0.22);
+}
+
+.sheet > .section .section__bar b {
+    color: var(--adm-muted);
+}
+
+.sheet > .section .section__bar {
+    color: var(--adm-muted);
+    font-size: 12px;
+    letter-spacing: 0.14em;
+}
+
+h1, h2, h3 {
+    color: var(--adm-text);
+}
+
+/* Надписи fieldsets в формах товаров и отзывов — менее яркие. */
+.fieldset-heading,
+fieldset legend {
+    color: var(--adm-muted) !important;
+}
+
+/* ---------------- Карточки ---------------- */
+.card,
+.info-box,
+.small-box,
+.modal-content,
+.dropdown-menu,
+.login-box .card {
+    color: var(--adm-text);
+    background: var(--adm-panel);
+    border: 2px solid var(--adm-line);
+    border-radius: 0;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.card-header,
+.card-footer {
+    background: var(--adm-deep);
+    border-color: var(--adm-line);
+    color: var(--adm-text);
+}
+
+/* ---------------- Таблицы (документный стиль) ---------------- */
+.table,
+.table td,
+.table th {
+    color: var(--adm-text);
+    border-color: var(--adm-line);
+}
+
+.table thead th {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    color: var(--adm-text);
+    background: var(--adm-deep);
+    border-bottom: 2px solid var(--adm-text);
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.table tbody tr:hover {
+    background: rgba(246, 220, 228, 0.06);
+}
+
+.table tbody tr td {
+    border-bottom-color: var(--adm-line);
+}
+
+.table td.field-name,
+.table th[scope="row"],
+.table .name {
+    font-family: var(--font-head);
+    font-size: 20px;
+    font-weight: 500;
+    line-height: 1.2;
+}
+
+.table td .field-photo img,
+.table td img.admin-thumb {
+    border: 1px solid var(--adm-faint);
+}
+
+/* ---------------- Формы ---------------- */
+input[type="text"],
+input[type="search"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+select,
+textarea {
+    background: var(--adm-bg);
+    color: var(--adm-text);
+    border: 2px solid var(--adm-line);
+    border-radius: 0;
+    font-family: var(--font-body);
+    font-size: 16px;
+    min-height: 46px;
+    padding: 10px 14px;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    border-color: var(--pearl-mint);
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: var(--adm-faint);
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+    accent-color: var(--pearl-mint);
+}
+
+/* ---------------- Кнопки ---------------- */
+/* ---------------- Кнопки: pearl-градиент, текст контрастный ---------------- */
+.btn,
+input[type="submit"],
+input[type="button"],
+input[type="reset"],
+.submit-row input,
+.add-another,
+.save-buttons a {
+    border-radius: 0;
+    border-width: 2px;
+    font-family: var(--font-body);
+    font-weight: 600;
+    color: var(--adm-bg);
+    background: var(--pearl);
+    border-color: transparent;
+}
+
+.btn:hover,
+input[type="submit"]:hover,
+input[type="button"]:hover,
+input[type="reset"]:hover,
+.submit-row input:hover,
+.add-another:hover,
+.save-buttons a:hover {
+    filter: brightness(1.08);
+}
+
+.btn-primary {
+    color: var(--adm-bg);
+    background: var(--pearl);
+}
+
+.btn-secondary {
+    color: var(--adm-text);
+    background: transparent;
+    border-color: var(--adm-text);
+}
+
+.btn-secondary:hover {
+    color: var(--adm-bg);
+    background: var(--adm-text);
+    filter: none;
+}
+
+.btn-warning {
+    color: var(--adm-bg);
+    background: #ffd28a;
+    border-color: #ffd28a;
+}
+
+.btn-danger {
+    color: var(--adm-bg);
+    background: #ff8a8a;
+    border-color: #ff8a8a;
+}
+
+.btn-success {
+    color: var(--adm-bg);
+    background: var(--pearl-mint-solid);
+    border-color: var(--pearl-mint-solid);
+}
+
+/* ---------------- Ссылки и статусы ---------------- */
+.btn-link,
+.text-muted {
+    color: var(--adm-muted);
+}
+
+.text-muted {
+    font-family: var(--font-mono);
+    font-size: 13px;
+}
+
+/* ---------------- Пагинация ---------------- */
+.paginator,
+.pagination,
+.pagination .page-item,
+.paginator a,
+.pagination a {
+    color: var(--adm-muted);
+    border-color: var(--adm-line);
+    background: transparent;
+}
+
+.pagination .page-item.active .page-link,
+.paginator a.current {
+    color: var(--adm-bg);
+    background: var(--pearl-mint-solid);
+    border-color: var(--pearl-mint-solid);
+}
+
+/* ---------------- Хлебные крошки ---------------- */
+.breadcrumb,
+.breadcrumbs {
+    color: var(--adm-muted);
+    background: var(--adm-deep);
+}
+
+.breadcrumbs a,
+.breadcrumb-item a {
+    color: var(--adm-text);
+    text-decoration: none;
+}
+
+/* ---------------- Сообщения ---------------- */
+.messages li,
+.alert {
+    border-left-width: 8px;
+    background: var(--adm-panel);
+    border-color: var(--adm-line);
+}
+
+.messages li.success,
+.alert.alert-success,
+.callout.callout-success {
+    border-color: var(--pearl-mint-solid);
+}
+
+.messages li.error,
+.alert.alert-error,
+.callout.callout-danger {
+    border-color: #ff8a8a;
+}
+
+.messages li.warning,
+.alert.alert-warning,
+.callout.callout-warning {
+    border-color: #ffd28a;
+}
+
+/* ---------------- Поиск / фильтры ---------------- */
+.search-header,
+.search-form {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.search-input,
+.search-form input[type="search"] {
+    flex: 0 1 320px;
+}
+
+.filters {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.filter-btn {
+    color: var(--adm-muted);
+    border-color: var(--adm-line);
+}
+
+.filter-btn:hover {
+    color: var(--adm-text);
+    border-color: var(--adm-text);
+}
+
+/* ---------------- Документные метки (badge) ---------------- */
+.admin-badge {
+    font-family: var(--font-mono);
+    letter-spacing: 0.04em;
+    border-radius: 0;
+}
+
+.admin-badge--success {
+    color: var(--adm-text);
+    background: rgba(246, 220, 228, 0.18);
+    border: 1px solid rgba(246, 220, 228, 0.42);
+}
+
+.admin-badge--warning {
+    color: var(--adm-text);
+    background: rgba(255, 210, 138, 0.16);
+    border: 1px solid rgba(255, 210, 138, 0.4);
+}
+
+.admin-badge--danger {
+    color: var(--adm-text);
+    background: rgba(255, 138, 138, 0.16);
+    border: 1px solid rgba(255, 138, 138, 0.4);
+}
+
+.admin-price {
+    color: var(--pearl-mint-solid);
+    white-space: nowrap;
+}
+
+.admin-rating {
+    color: var(--pearl-mint-solid);
+    letter-spacing: 1px;
+    white-space: nowrap;
+}
+
+/* Единые средние цветные фото в таблицах (товары и сотрудники). */
+img.admin-thumb {
+    display: block;
+    width: 64px;
+    height: 64px;
+    object-fit: cover;
+    border: 1px solid var(--adm-faint);
+    background: var(--adm-deep);
+}
+
+.admin-empty {
+    color: var(--adm-muted);
+    font-size: 12px;
+}
+
+/* ---------------- Модальные окна ---------------- */
+.modal-content,
+.modal-backdrop {
+    background: var(--adm-bg);
+}
+
+/* ---------------- Личный кабинет (пользователь в шапке) ---------------- */
+.user-tools {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.user-tools a {
+    color: var(--adm-text);
+    font-weight: 600;
+}
+
+.nav-tabs .nav-link,
+.nav-tabs .nav-item .nav-link {
+    border-radius: 0;
+    border-color: var(--adm-line);
+    color: var(--adm-muted);
+    font-family: var(--font-head);
+    font-weight: 600;
+}
+
+.nav-tabs .nav-link.active {
+    border-color: var(--pearl-mint-solid) !important;
+    color: var(--adm-text);
+}
+
+/* ---------------- Документные карточки на главной ---------------- */
+.admin-home-title {
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: clamp(44px, 5vw, 56px);
+    text-transform: uppercase;
+    letter-spacing: -0.015em;
+}
+
+.admin-home-tools {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.admin-home-sub {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 20px;
+    margin-top: 12px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--adm-muted);
+}
+
+.admin-home-dot {
+    color: var(--adm-muted);
+}
+
+.admin-home-sub a {
+    color: var(--adm-text);
+}
+
+/* Кнопка «Изменить» в таблице товаров, рядом с датой производства. */
+.btn--edit {
+    display: inline-flex;
+    align-items: center;
+    min-height: 26px;
+    padding: 2px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--adm-bg);
+    background: var(--pearl);
+    border-color: transparent;
+    border-radius: 0;
+}
+
+/* Кнопки на лендинге: pearl-градиент, текст контрастный. */
+.btn--pearl,
+.btn--add {
+    color: var(--adm-bg);
+    background: var(--pearl);
+    border-color: transparent;
+}
+
+.btn--pearl:hover,
+.btn--add:hover {
+    filter: brightness(1.08);
+}
+
+.btn--add {
+    min-height: 52px;
+    font-size: 18px;
+    letter-spacing: 0.06em;
+}
+
+/* Документная заглушка-разделитель под разделами на главной. */
+.admin-home-title-2 {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin: 0 0 13px;
+    color: var(--adm-muted);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+}
+
+.admin-home-line {
+    height: 1px;
+    flex: 1;
+    background: linear-gradient(90deg, rgba(246, 220, 228, .45), transparent);
+}
+
+/* ---------------- Подвал и AdminLTE-подобные имена ---------------- */
+.main-footer {
+    background: var(--adm-deep);
+    border-top: 2px solid var(--adm-line);
+    color: var(--adm-muted);
+    font-family: var(--font-mono);
+    font-size: 13px;
+}
+
+.app-header {
+    background: rgba(30, 35, 39, 0.97) !important;
+    border-bottom: 2px solid rgba(246, 220, 228, 0.42) !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.28) !important;
+}
+
+.app-header .nav-link {
+    color: var(--adm-muted);
+    font-weight: 600;
+}
+
+.app-header .nav-link:hover,
+.app-header .nav-link.active {
+    color: var(--adm-text);
+}
+
+.app-header .navbar-brand,
+.app-header .brand-link {
+    font-family: var(--font-head);
+    font-weight: 700;
+    color: var(--adm-text);
+}
+
+.app-sidebar,
+.app-sidebar::before {
+    background: var(--adm-panel) !important;
+    border-color: var(--adm-line) !important;
+}
+
+.app-sidebar .nav-link {
+    color: var(--adm-muted) !important;
+}
+
+.app-sidebar .nav-link:hover,
+.app-sidebar .nav-link.active,
+.app-sidebar .menu-open > .nav-link {
+    color: var(--adm-bg) !important;
+    background: var(--pearl-mint-solid) !important;
+}
+
+.app-sidebar .nav-header {
+    color: var(--pearl-pink) !important;
+}
+
+/* ---------------- Мобильная версия ---------------- */
+@media (max-width: 767.98px) {
+    .content {
+        padding: 12px;
+    }
+
+    .table-responsive {
+        overflow-x: auto;
+    }
+
+    .table {
+        min-width: 700px;
+    }
+
+    .admin-home-sub,
+    .admin-home-tools {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}

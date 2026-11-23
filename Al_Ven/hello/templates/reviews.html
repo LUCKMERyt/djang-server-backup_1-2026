@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{# NOTE: Отзывы добавляются через POST с CSRF-защитой и сохраняются в hello_reviews. #}
+
+{% block title %}Отзывы клиентов{% endblock %}
+{% block doc_name %}Журнал отзывов партнёров{% endblock %}
+
+{% block content %}
+<div class="sheet" aria-labelledby="reviews-title">
+    <header class="sheet__head">
+        <h1 id="reviews-title">Отзывы наших клиентов</h1>
+        <p class="sheet__lead">Нам важно ваше мнение! Поделитесь своим опытом использования нашей продукции.</p>
+    </header>
+
+    <!-- Форма добавления отзыва -->
+    <section class="section" aria-label="Форма отзыва">
+        <div class="section__bar"><b>Раздел 1. Оставить отзыв</b></div>
+        <div class="section__body">
+            <form method="post" class="review-form" autocomplete="off">
+                {% csrf_token %}
+                <!-- Honeypot (секретное поле) — защита от ботов. -->
+                <input type="hidden" name="spam_field" value="">
+
+                <div class="form-group">
+                    {{ form.name.label_tag }}
+                    {{ form.name }}
+                    {{ form.name.errors }}
+                </div>
+
+                <div class="form-group">
+                    {{ form.rating.label_tag }}
+                    {{ form.rating }}
+                    {{ form.rating.errors }}
+                </div>
+
+                <div class="form-group">
+                    {{ form.text.label_tag }}
+                    {{ form.text }}
+                    {{ form.text.errors }}
+                </div>
+
+                <div>
+                    <button type="submit" class="btn">Отправить отзыв</button>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <!-- Список отзывов -->
+    <section class="section" aria-label="Список отзывов">
+        <div class="section__bar"><b>Раздел 2. Последние отзывы</b><span>Всего: {{ reviews_list|length }}</span></div>
+        <div>
+            {% for review in reviews_list %}
+                <article class="review-card">
+                    <div class="review-card__header">
+                        <div class="review-card__author">
+                            <div class="review-card__avatar" aria-hidden="true">{{ review.name|first|upper }}</div>
+                            <div>
+                                <h3>{{ review.name }}</h3>
+                                <time class="review-card__date" datetime="{{ review.created_at|date:'c' }}">
+                                    {{ review.created_at|date:"d.m.Y, H:i" }}
+                                </time>
+                            </div>
+                        </div>
+                        <div class="review-card__rating" role="img" aria-label="Оценка {{ review.rating }} из 5">
+                            {% for i in "12345" %}
+                                {% if forloop.counter <= review.rating %}
+                                    <span class="star filled">★</span>
+                                {% else %}
+                                    <span class="star empty">★</span>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="review-card__text">{{ review.text|linebreaks }}</div>
+                </article>
+            {% empty %}
+                <div class="empty-message">
+                    Пока нет ни одного отзыва. Будьте первым!
+                </div>
+            {% endfor %}
+        </div>
+        {% if page_obj.has_other_pages %}
+        <nav class="pagination" aria-label="Страницы отзывов">
+            {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}">Назад</a>
+            {% endif %}
+            {% for number in page_obj.paginator.page_range %}
+                {% if number == page_obj.number %}
+                    <span class="current" aria-current="page">{{ number }}</span>
+                {% else %}
+                    <a href="?page={{ number }}">{{ number }}</a>
+                {% endif %}
+            {% endfor %}
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}">Далее</a>
+            {% endif %}
+        </nav>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}

@@ -1,0 +1,128 @@
+{% load static %}
+{# NOTE: Общий шаблон сайта. Все страницы наследуют base.html. #}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <!-- ! UTF-8 обязателен для корректного отображения русского текста. -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="SOPHISTICATED — оптовый склад товаров для закупки и продажи бизнесом.">
+  <title>{% block title %}SOPHISTICATED{% endblock %} | SOPHISTICATED</title>
+  {% block canonical %}{% endblock %}
+  {% if settings.YMETRICA_ID %}
+  <!-- Счётчик Яндекс.Метрики — аналитика каталога (ID: {{ settings.YMETRICA_ID }}) -->
+  <script>
+    (function (w, d, s, l, i) {
+      w[l] = { 'modules': ['counter.js'] };
+      w[i] = 1;
+      w[i + '_hc'] = i;
+      var h = d.querySelector('script[src="' + s + '"]:first-child');
+      if (!h) {
+        h = d.createElement('script');
+        h.setAttribute('async', true);
+        h.src = s;
+      }
+      d.head.appendChild(h);
+      h.innerHTML = '';
+      h.onload = function () {
+        w._ymRetarget('init');
+      };
+    })(window, document, 'https://mc.yandex.ru/metrics.js', 'yandex_metric', {{ settings.YMETRICA_ID }});
+  </script>
+  {% endif %}
+  {% if settings.GA_MEASUREMENT_ID %}
+  <!-- Google Analytics (gtag.js) — аналитика каталога -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id={{ settings.GA_MEASUREMENT_ID }}"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', '{{ settings.GA_MEASUREMENT_ID }}');
+  </script>
+  {% endif %}
+  <!-- NOTE: Шрифты Google Fonts; без сети страница использует запасные системные шрифты. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans:wght@400;600&family=Oswald:wght@500;700&display=swap">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body data-page="{{ request.resolver_match.url_name|default:'' }}">
+  <!-- NOTE: Тонкая полоса прогресса прокрутки; обновляется в static/js/motion.js. -->
+  <div class="scroll-progress" aria-hidden="true"><span></span></div>
+
+  <div class="header">
+    <div class="header__inner">
+      <div class="logo">
+        <a href="{% url 'index' %}"><span class="logo__pearl" aria-hidden="true"></span><span class="logo__text">SOPHISTICATED</span></a>
+      </div>
+      <button class="menu-toggle" type="button" aria-controls="main-menu" aria-expanded="false">
+        <span class="visually-hidden">Открыть меню</span>
+        <span aria-hidden="true">☰</span>
+      </button>
+      <nav class="menu" id="main-menu" aria-label="Основная навигация">
+          {% with current=request.resolver_match.url_name %}
+          <a href="{% url 'index' %}"{% if current == 'index' %} class="active"{% endif %}>Главная</a>
+          <a href="{% url 'news' %}"{% if current == 'news' %} class="active"{% endif %}>Команда</a>
+          <a href="{% url 'products' %}"{% if current == 'products' %} class="active"{% endif %}>Оптовый каталог</a>
+          <a href="{% url 'blog' %}"{% if current == 'blog' %} class="active"{% endif %}>Для бизнеса</a>
+          <a href="{% url 'weo' %}"{% if current == 'weo' %} class="active"{% endif %}>О складе</a>
+          <a href="{% url 'reviews' %}"{% if current == 'reviews' %} class="active"{% endif %}>Отзывы</a>
+          {% if user.is_authenticated %}
+          <a class="menu__login" href="{% url 'account' %}">Аккаунт</a>
+          {% else %}
+          <a class="menu__login" href="{% url 'vhod' %}">Вход</a>
+          {% endif %}
+          {% endwith %}
+      </nav>
+    </div>
+  </div>
+
+  <!-- NOTE: Строка документа: название накладной задаёт каждая страница, дата — текущая. -->
+  <div class="docbar">
+    <div class="docbar__inner">
+      <span>Документ: <b>{% block doc_name %}Накладная{% endblock %}</b></span>
+      <span>Поставщик: <b>SOPHISTICATED</b></span>
+      <span>Дата: <b>{% now "d.m.Y" %}</b></span>
+    </div>
+  </div>
+
+  <!-- NOTE: Здесь отображаются сообщения Django и содержимое текущей страницы. -->
+  <main>
+    {% if messages %}
+      <ul class="messages">
+        {% for message in messages %}
+          <li class="{{ message.tags }}">{{ message }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- NOTE: Контакты берутся из context_processors.py и доступны на всех страницах. -->
+  <footer class="site-footer">
+    <div class="site-footer__inner">
+      <div class="site-footer__brand">
+        <strong>SOPHISTICATED</strong>
+        <span>Оптовый склад товаров для вашего бизнеса</span>
+      </div>
+      <div class="site-footer__contacts">
+        <a href="mailto:{{ SITE_CONTACTS.email }}">{{ SITE_CONTACTS.email }}</a>
+        <a href="tel:{{ SITE_CONTACTS.phone }}">{{ SITE_CONTACTS.phone }}</a>
+        <span>{{ SITE_CONTACTS.address }}</span>
+        <a href="{% get_media_prefix %}products/PHOTO_CREDITS.txt">Фото и лицензии</a>
+      </div>
+      <div class="site-footer__socials" aria-label="Социальные сети">
+        <a href="{{ SITE_CONTACTS.vk }}" target="_blank" rel="noopener noreferrer">VK</a>
+        <a href="{{ SITE_CONTACTS.telegram }}" target="_blank" rel="noopener noreferrer">Telegram</a>
+        <a href="{{ SITE_CONTACTS.youtube }}" target="_blank" rel="noopener noreferrer">YouTube</a>
+      </div>
+      <small>© SOPHISTICATED, 2026. Оптовые поставки для бизнеса</small>
+    </div>
+  </footer>
+  <!-- NOTE: Кнопка «Наверх» — появляется при прокрутке (JS + style.css). -->
+  <button type="button" id="back-to-top" class="back-to-top" hidden aria-label="Наверх">↑</button>
+
+  <script src="{% static 'js/motion.js' %}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>
