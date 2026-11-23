@@ -60,7 +60,9 @@ $env:DJANGO_SECRET_KEY = [Environment]::GetEnvironmentVariable("DJANGO_SECRET_KE
 
 Окно должно оставаться открытым. Скрипт запускает Django с `DEBUG=False`,
 SQLite, secure cookies, HTTPS-redirect и Waitress, привязанным только к
-`127.0.0.1`. Он проверит настройки и соберёт статику, но не запускает миграции
+`127.0.0.1`. Waitress доверяет только локальному proxy и только его заголовку
+`X-Forwarded-Proto`, который Cloudflare Tunnel использует для передачи HTTPS.
+Скрипт проверит настройки и соберёт статику, но не запускает миграции
 автоматически.
 
 Проверьте origin в другом окне PowerShell. Поскольку production-режим

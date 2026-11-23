@@ -41,8 +41,17 @@ try {
     & $Python manage.py collectstatic --noinput
     if ($LASTEXITCODE -ne 0) { throw "collectstatic failed." }
 
-    & $Waitress "--listen=127.0.0.1:$Port" "Al_Ven.wsgi:application"
-    if ($LASTEXITCODE -ne 0) { throw "Waitress exited with an error." }
+    $previousErrorActionPreference = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    try {
+        & $Waitress "--listen=127.0.0.1:$Port" "--trusted-proxy=127.0.0.1" "--trusted-proxy-headers=x-forwarded-proto" "Al_Ven.wsgi:application" 2>&1 |
+            ForEach-Object { [Console]::Out.WriteLine($_.ToString()) }
+        $waitressExitCode = $LASTEXITCODE
+        if ($waitressExitCode -ne 0) { throw "Waitress exited with code $waitressExitCode." }
+    }
+    finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
 }
 finally {
     Pop-Location
