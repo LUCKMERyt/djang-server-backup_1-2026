@@ -37,6 +37,8 @@ urlpatterns = [
     path('telegram-control/api/action/', telegram_control.mini_app_action, name='telegram_control_action'),
 
 ]
+
+
 urlpatterns += [
     re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
     re_path(r'^static/(?P<path>.*)$', serve, {'document_root': settings.STATIC_ROOT}),
