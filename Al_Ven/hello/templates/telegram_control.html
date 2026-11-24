@@ -1,0 +1,285 @@
+{% load static %}
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#11131a">
+    <title>Управление сервером</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            color-scheme: dark;
+            --bg: var(--tg-theme-bg-color, #11131a);
+            --panel: var(--tg-theme-secondary-bg-color, #1b1e28);
+            --text: var(--tg-theme-text-color, #f3f5fa);
+            --muted: var(--tg-theme-hint-color, #9aa2b2);
+            --accent: var(--tg-theme-button-color, #6c63ff);
+            --accent-text: var(--tg-theme-button-text-color, #fff);
+            --line: rgba(255,255,255,.09);
+            --danger: #ef5967;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            padding: max(18px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom));
+            color: var(--text);
+            background:
+                radial-gradient(ellipse at 90% 0, rgba(108,99,255,.19), transparent 35%),
+                var(--bg);
+        }
+        main { width: min(100%, 560px); margin: 0 auto; }
+        header { padding: 14px 2px 20px; }
+        .eyebrow { color: var(--muted); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; }
+        h1 { margin: 7px 0 0; font-size: clamp(26px, 7vw, 34px); letter-spacing: -.04em; }
+        .card {
+            margin: 12px 0;
+            padding: 17px;
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            background: color-mix(in srgb, var(--panel) 90%, transparent);
+            box-shadow: 0 12px 35px rgba(0,0,0,.12);
+        }
+        .status-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+        h2 { margin: 0; font-size: 16px; }
+        .status {
+            display: inline-flex; align-items: center; gap: 7px;
+            color: var(--muted); font-size: 13px;
+        }
+        .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--muted); }
+        .dot.up { background: #35c985; box-shadow: 0 0 12px rgba(53,201,133,.6); }
+        .dot.down { background: var(--danger); }
+        .services { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; }
+        .service {
+            padding: 12px; border: 1px solid var(--line); border-radius: 14px;
+            background: rgba(255,255,255,.025);
+        }
+        .service-name { display: block; color: var(--muted); font-size: 12px; }
+        .service-value { display: block; margin-top: 6px; font-size: 14px; font-weight: 650; }
+        .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+        button {
+            min-height: 48px; padding: 11px 12px; border: 1px solid var(--line);
+            border-radius: 14px; color: var(--text); background: rgba(255,255,255,.055);
+            font: inherit; font-size: 14px; font-weight: 650; cursor: pointer;
+            transition: transform .12s ease, opacity .12s ease, background .12s ease;
+        }
+        button:active { transform: scale(.98); }
+        button.primary { color: var(--accent-text); border-color: transparent; background: var(--accent); }
+        button.danger { color: #fff; border-color: transparent; background: var(--danger); }
+        button:disabled { opacity: .48; cursor: wait; }
+        .wide { grid-column: 1 / -1; }
+        .subheading { display: flex; justify-content: space-between; align-items: center; }
+        .subheading button { min-height: 36px; padding: 6px 10px; font-size: 12px; }
+        pre {
+            max-height: 310px; overflow: auto; margin: 13px 0 0; padding: 12px;
+            border-radius: 12px; color: #d3d9e8; background: #0c0e13;
+            font: 12px/1.55 ui-monospace, SFMono-Regular, Consolas, monospace;
+            white-space: pre-wrap; overflow-wrap: anywhere;
+        }
+        .message { min-height: 20px; margin: 12px 3px 0; color: var(--muted); font-size: 13px; }
+        .notice { color: #ffd27b; }
+        .hidden { display: none; }
+        @media (max-width: 360px) {
+            .actions { grid-template-columns: 1fr; }
+            .wide { grid-column: auto; }
+        }
+    </style>
+</head>
+<body>
+<main>
+    <header>
+        <div class="eyebrow">SOPHISTICATED · SERVER CONTROL</div>
+        <h1>Панель сервера</h1>
+    </header>
+
+    <section class="card" aria-labelledby="status-title">
+        <div class="status-heading">
+            <h2 id="status-title">Состояние</h2>
+            <span class="status" id="updated-at">Не проверено</span>
+        </div>
+        <div class="services">
+            <div class="service">
+                <span class="service-name">Django / Waitress</span>
+                <span class="service-value" id="django-status">—</span>
+            </div>
+            <div class="service">
+                <span class="service-name">CloudPub</span>
+                <span class="service-value" id="cloudpub-status">—</span>
+            </div>
+        </div>
+        <div class="actions">
+            <button type="button" class="primary" data-action="start">▶ Запустить</button>
+            <button type="button" class="danger" data-action="stop">■ Остановить</button>
+            <button type="button" data-action="restart">↻ Перезапустить</button>
+            <button type="button" data-action="update">↑ Обновить сайт</button>
+            <button type="button" class="wide" id="refresh-status">Обновить статус</button>
+        </div>
+        <p class="message" id="message" role="status" aria-live="polite"></p>
+    </section>
+
+    <section class="card" aria-labelledby="logs-title">
+        <div class="subheading">
+            <h2 id="logs-title">Журнал Waitress</h2>
+            <button type="button" id="refresh-logs">Обновить</button>
+        </div>
+        <pre id="logs">Нажмите «Обновить», чтобы загрузить последние строки.</pre>
+    </section>
+</main>
+<script>
+    (() => {
+        const telegram = window.Telegram && window.Telegram.WebApp;
+        const message = document.getElementById("message");
+        const buttons = [...document.querySelectorAll("button")];
+        const initData = telegram ? telegram.initData : "";
+
+        if (telegram && initData) {
+            telegram.ready();
+            telegram.expand();
+        } else {
+            message.textContent = "Откройте панель через Telegram-бота.";
+            message.classList.add("notice");
+            buttons.forEach((button) => { button.disabled = true; });
+            return;
+        }
+
+        function csrfToken() {
+            const cookie = document.cookie.split("; ").find((item) => item.startsWith("csrftoken="));
+            return cookie ? decodeURIComponent(cookie.split("=").slice(1).join("=")) : "";
+        }
+
+        async function api(url, options = {}) {
+            const headers = {
+                "X-Telegram-Init-Data": initData,
+                "X-CSRFToken": csrfToken(),
+                ...(options.headers || {}),
+            };
+            const response = await fetch(url, {
+                ...options,
+                headers,
+                credentials: "same-origin",
+            });
+            let payload;
+            try {
+                payload = await response.json();
+            } catch (_) {
+                throw new Error("Сайт перезапускается или вернул некорректный ответ.");
+            }
+            if (!response.ok) {
+                throw new Error(payload.error || "Запрос не выполнен.");
+            }
+            return payload;
+        }
+
+        function serviceState(elementId, service) {
+            const element = document.getElementById(elementId);
+            const running = Boolean(service && service.running);
+            element.textContent = running
+                ? `Работает${service.pids && service.pids.length ? ` · PID ${service.pids.join(", ")}` : ""}`
+                : "Остановлен";
+            element.dataset.state = running ? "up" : "down";
+        }
+
+        async function refreshStatus() {
+            const payload = await api("/telegram-control/api/status/");
+            serviceState("django-status", payload.status.waitress);
+            serviceState("cloudpub-status", payload.status.cloudpub);
+            document.getElementById("updated-at").textContent =
+                `Проверено в ${new Date().toLocaleTimeString("ru-RU")}`;
+        }
+
+        async function refreshLogs() {
+            const payload = await api("/telegram-control/api/logs/");
+            document.getElementById("logs").textContent = payload.logs || "Журнал пока пуст.";
+        }
+
+        function sendToBot(action) {
+            if (!telegram || typeof telegram.sendData !== "function") {
+                throw new Error("Отправьте команду через Telegram-бота: /server_start, /server_stop или /server_restart.");
+            }
+            telegram.sendData(JSON.stringify({
+                action,
+                confirmed: ["stop", "restart", "update"].includes(action),
+            }));
+        }
+
+        async function runAction(action) {
+            if (["stop", "restart", "update"].includes(action)) {
+                const prompts = {
+                    stop: "Остановить сервер?",
+                    restart: "Перезапустить сервер?",
+                    update: "Загрузить обновление, выполнить миграции БД и перезапустить сервер?",
+                };
+                const confirmed = typeof telegram.showConfirm === "function"
+                    ? await new Promise((resolve) => telegram.showConfirm(prompts[action], resolve))
+                    : window.confirm(prompts[action]);
+                if (!confirmed) return;
+            }
+
+            if (action !== "start") {
+                message.textContent = "Передаю подтверждённую команду боту…";
+                sendToBot(action);
+                return;
+            }
+
+            message.textContent = "Запускаю сервер…";
+            try {
+                const payload = await api("/telegram-control/api/action/", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ action: "start" }),
+                });
+                message.textContent = payload.message || "Команда запуска выполнена.";
+                await refreshStatus();
+            } catch (error) {
+                try {
+                    sendToBot("start");
+                    message.textContent = "Сайт недоступен. Команда запуска отправлена боту.";
+                } catch (_) {
+                    message.textContent = `${error.message} Если сервер остановлен, отправьте боту /server_start.`;
+                    message.classList.add("notice");
+                }
+            }
+        }
+
+        document.querySelectorAll("[data-action]").forEach((button) => {
+            button.addEventListener("click", async () => {
+                try {
+                    await runAction(button.dataset.action);
+                } catch (error) {
+                    message.textContent = error.message;
+                    message.classList.add("notice");
+                }
+            });
+        });
+        document.getElementById("refresh-status").addEventListener("click", async () => {
+            message.classList.remove("notice");
+            message.textContent = "Получаю статус…";
+            try {
+                await refreshStatus();
+                message.textContent = "Статус обновлён.";
+            } catch (error) {
+                message.textContent = error.message;
+                message.classList.add("notice");
+            }
+        });
+        document.getElementById("refresh-logs").addEventListener("click", async () => {
+            try {
+                await refreshLogs();
+            } catch (error) {
+                document.getElementById("logs").textContent = error.message;
+            }
+        });
+
+        refreshStatus().catch((error) => {
+            message.textContent = error.message;
+            message.classList.add("notice");
+        });
+        refreshLogs().catch((error) => {
+            document.getElementById("logs").textContent = error.message;
+        });
+    })();
+</script>
+</body>
+</html>
