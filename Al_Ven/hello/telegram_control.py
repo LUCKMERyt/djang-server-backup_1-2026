@@ -9,6 +9,10 @@ from urllib.parse import parse_qsl
 
 from django.http import JsonResponse
 from django.shortcuts import render
+
+from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
+from urllib.request import Request, urlopen
+
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_GET, require_POST
 
@@ -228,3 +232,42 @@ def mini_app_action(request):
             status=400,
         )
     return _server_action_response(action)
+
+import sys
+
+
+@csrf_exempt
+@require_POST
+def telegram_webhook(request):
+    try:
+        bot_token, allowed_user_ids = _bot_configuration()
+    except RuntimeError:
+        return JsonResponse({"ok": False}, status=503)
+
+    # Проверяем секретный заголовок от Telegram (защита от поддельных запросов)
+    expected_secret = hashlib.sha256(bot_token.encode("utf-8")).hexdigest()[:32]
+    received_secret = request.headers.get("X-Telegram-Bot-Api-Secret-Token", "")
+    if not hmac.compare_digest(received_secret, expected_secret):
+        return JsonResponse({"ok": False}, status=403)
+
+    try:
+        update = json.loads(request.body.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError):
+        return JsonResponse({"ok": False}, status=400)
+
+    # Подключаем логику из D:\kod\tg-server\bot.py
+    tg_dir = str(BOT_ENV_FILE.parent)
+    if tg_dir not in sys.path:
+        sys.path.insert(0, tg_dir)
+    import bot as tg_bot
+
+    bot_instance = tg_bot.TelegramBot(bot_token, allowed_user_ids)
+    try:
+        if "message" in update:
+            bot_instance.handle_message(update["message"])
+        elif "callback_query" in update:
+            bot_instance.handle_callback(update["callback_query"])
+    except Exception:
+        return JsonResponse({"ok": True})
+
+    return JsonResponse({"ok": True})

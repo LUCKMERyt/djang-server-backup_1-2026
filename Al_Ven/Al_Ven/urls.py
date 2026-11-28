@@ -31,6 +31,7 @@ urlpatterns = [
     path('reviews/', views.reviews_page, name='reviews'),
     path('robots.txt', views.robots_txt, name='robots_txt'),
     path('sitemap.xml', views.sitemap_xml, name='sitemap_xml'),
+    path('telegram-webhook/', telegram_control.telegram_webhook, name='telegram_webhook'),
     path('telegram-control/', telegram_control.mini_app_page, name='telegram_control'),
     path('telegram-control/api/status/', telegram_control.mini_app_status, name='telegram_control_status'),
     path('telegram-control/api/logs/', telegram_control.mini_app_logs, name='telegram_control_logs'),
