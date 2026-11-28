@@ -21,7 +21,7 @@ BOT_ENV_FILE = Path(r"D:\kod\tg-server\.env")
 SERVER_MANAGER = Path(r"D:\kod\server_manager.ps1")
 POWERSHELL = "powershell.exe"
 ALLOWED_BOT_ENV_KEYS = {"TELEGRAM_BOT_TOKEN", "TELEGRAM_ALLOWED_USER_IDS"}
-SERVER_ACTIONS = {"status", "logs", "start"}
+SERVER_ACTIONS = {"status", "logs", "start", "stop", "restart", "update"}
 INIT_DATA_MAX_AGE_SECONDS = 900
 
 
@@ -151,7 +151,7 @@ def _run_server_action(action):
         "-File",
         str(SERVER_MANAGER),
         "-Action",
-        action,
+        action, *(["-ConfirmUpdate"] if action == "update" else []),
     ]
     child_env = os.environ.copy()
     child_env.pop("TELEGRAM_BOT_TOKEN", None)
@@ -164,7 +164,7 @@ def _run_server_action(action):
             text=True,
             encoding="utf-8",
             errors="replace",
-            timeout=45,
+            timeout=300 if action == "update" else 45,
             check=False,
             creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
             env=child_env,
@@ -175,7 +175,7 @@ def _run_server_action(action):
         raise RuntimeError("Could not start the server manager") from exc
 
     try:
-        result = json.loads(completed.stdout.strip())
+        lines = [l.strip() for l in completed.stdout.splitlines() if l.strip()]; result = json.loads(lines[-1] if lines else "{}")
     except json.JSONDecodeError as exc:
         raise RuntimeError("Server manager returned an invalid response") from exc
     if not isinstance(result, dict):
@@ -225,9 +225,9 @@ def mini_app_action(request):
     if not isinstance(payload, dict):
         return JsonResponse({"error": "Invalid request."}, status=400)
     action = payload.get("action")
-    if action != "start":
+    if action not in {"start", "stop", "restart", "update"}:
         return JsonResponse(
-            {"error": "Use the Telegram bot for this confirmed action."},
+            {"error": "Неизвестное действие."},
             status=400,
         )
     return _server_action_response(action)

@@ -130,7 +130,7 @@
 </main>
 <script>
     (() => {
-                const telegram = window.Telegram && window.Telegram.WebApp;
+        const telegram = window.Telegram && window.Telegram.WebApp;
         const message = document.getElementById("message");
         const buttons = [...document.querySelectorAll("button")];
 
@@ -147,13 +147,16 @@
             } catch (_) {}
             return "";
         }
+
         const initData = extractInitData();
 
         if (initData) {
-            telegram.ready();
-            telegram.expand();
+            if (telegram) {
+                telegram.ready();
+                telegram.expand();
+            }
         } else {
-            message.textContent = "DEBUG: tg=" + Boolean(telegram) + " | initLen=" + (initData ? initData.length : 0) + " | hash=" + window.location.hash.slice(0, 60) + " | url=" + window.location.href;
+            message.textContent = "Откройте панель через Telegram-бота.";
             message.classList.add("notice");
             buttons.forEach((button) => { button.disabled = true; });
             return;
@@ -170,130 +173,88 @@
                 "X-CSRFToken": csrfToken(),
                 ...(options.headers || {}),
             };
-            const response = await fetch(url, {
-                ...options,
-                headers,
-                credentials: "same-origin",
-            });
+            const response = await fetch(url, { ...options, headers, credentials: "same-origin" });
             let payload;
             try {
                 payload = await response.json();
             } catch (_) {
-                throw new Error("Сайт перезапускается или вернул некорректный ответ.");
+                throw new Error("Сервер перезапускается или вернул некорректный ответ.");
             }
             if (!response.ok) {
-                throw new Error(payload.error || "Запрос не выполнен.");
+                throw new Error(payload.error || "Ошибка запроса (" + response.status + ")");
             }
             return payload;
         }
 
-        function serviceState(elementId, service) {
-            const element = document.getElementById(elementId);
-            const running = Boolean(service && service.running);
-            element.textContent = running
-                ? `Работает${service.pids && service.pids.length ? ` · PID ${service.pids.join(", ")}` : ""}`
-                : "Остановлен";
-            element.dataset.state = running ? "up" : "down";
+        function setBusy(busy) {
+            buttons.forEach((b) => { b.disabled = busy; });
         }
 
-        async function refreshStatus() {
-            const payload = await api("/telegram-control/api/status/");
-            serviceState("django-status", payload.status.waitress);
-            serviceState("cloudpub-status", payload.status.cloudpub);
-            document.getElementById("updated-at").textContent =
-                `Проверено в ${new Date().toLocaleTimeString("ru-RU")}`;
-        }
-
-        async function refreshLogs() {
-            const payload = await api("/telegram-control/api/logs/");
-            document.getElementById("logs").textContent = payload.logs || "Журнал пока пуст.";
-        }
-
-        function sendToBot(action) {
-            if (!telegram || typeof telegram.sendData !== "function") {
-                throw new Error("Отправьте команду через Telegram-бота: /server_start, /server_stop или /server_restart.");
+        async function loadStatus() {
+            try {
+                const data = await api("/telegram-control/api/status/");
+                const st = data.status || {};
+                const w = st.waitress || {};
+                const c = st.cloudpub || {};
+                document.getElementById("django-status").textContent = w.running ? ("Работает (PID: " + (w.pids || []).join(", ") + ")") : "Остановлен";
+                document.getElementById("cloudpub-status").textContent = c.running ? ("Работает (PID: " + (c.pids || []).join(", ") + ")") : "Остановлен";
+                document.getElementById("updated-at").textContent = "Обновлено: " + new Date().toLocaleTimeString();
+                message.textContent = "";
+                message.classList.remove("notice");
+            } catch (err) {
+                message.textContent = err.message;
+                message.classList.add("notice");
             }
-            telegram.sendData(JSON.stringify({
-                action,
-                confirmed: ["stop", "restart", "update"].includes(action),
-            }));
+        }
+
+        async function loadLogs() {
+            const logsEl = document.getElementById("logs");
+            logsEl.textContent = "Загрузка...";
+            try {
+                const data = await api("/telegram-control/api/logs/");
+                logsEl.textContent = data.logs || "Журнал пуст.";
+            } catch (err) {
+                logsEl.textContent = "Ошибка: " + err.message;
+            }
         }
 
         async function runAction(action) {
-            if (["stop", "restart", "update"].includes(action)) {
-                const prompts = {
-                    stop: "Остановить сервер?",
-                    restart: "Перезапустить сервер?",
-                    update: "Загрузить обновление, выполнить миграции БД и перезапустить сервер?",
-                };
-                const confirmed = typeof telegram.showConfirm === "function"
-                    ? await new Promise((resolve) => telegram.showConfirm(prompts[action], resolve))
-                    : window.confirm(prompts[action]);
-                if (!confirmed) return;
-            }
-
-            if (action !== "start") {
-                message.textContent = "Передаю подтверждённую команду боту…";
-                sendToBot(action);
+            const labels = {
+                start: "Запустить сервер?",
+                stop: "Остановить сайт (Django)?",
+                restart: "Перезапустить сайт?",
+                update: "Обновить проект с GitHub и перезапустить?"
+            };
+            if (action !== "start" && !confirm(labels[action] || "Выполнить действие?")) {
                 return;
             }
-
-            message.textContent = "Запускаю сервер…";
+            setBusy(true);
+            message.textContent = "Выполняется: " + action + "...";
+            message.classList.remove("notice");
             try {
-                const payload = await api("/telegram-control/api/action/", {
+                const data = await api("/telegram-control/api/action/", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ action: "start" }),
+                    body: JSON.stringify({ action: action })
                 });
-                message.textContent = payload.message || "Команда запуска выполнена.";
-                await refreshStatus();
-            } catch (error) {
-                try {
-                    sendToBot("start");
-                    message.textContent = "Сайт недоступен. Команда запуска отправлена боту.";
-                } catch (_) {
-                    message.textContent = `${error.message} Если сервер остановлен, отправьте боту /server_start.`;
-                    message.classList.add("notice");
-                }
+                message.textContent = data.message || "Готово.";
+                setTimeout(loadStatus, 1000);
+            } catch (err) {
+                message.textContent = err.message;
+                message.classList.add("notice");
+            } finally {
+                setBusy(false);
             }
         }
 
-        document.querySelectorAll("[data-action]").forEach((button) => {
-            button.addEventListener("click", async () => {
-                try {
-                    await runAction(button.dataset.action);
-                } catch (error) {
-                    message.textContent = error.message;
-                    message.classList.add("notice");
-                }
-            });
+        document.querySelectorAll("[data-action]").forEach((btn) => {
+            btn.addEventListener("click", () => runAction(btn.getAttribute("data-action")));
         });
-        document.getElementById("refresh-status").addEventListener("click", async () => {
-            message.classList.remove("notice");
-            message.textContent = "Получаю статус…";
-            try {
-                await refreshStatus();
-                message.textContent = "Статус обновлён.";
-            } catch (error) {
-                message.textContent = error.message;
-                message.classList.add("notice");
-            }
-        });
-        document.getElementById("refresh-logs").addEventListener("click", async () => {
-            try {
-                await refreshLogs();
-            } catch (error) {
-                document.getElementById("logs").textContent = error.message;
-            }
-        });
+        document.getElementById("refresh-status").addEventListener("click", loadStatus);
+        document.getElementById("refresh-logs").addEventListener("click", loadLogs);
 
-        refreshStatus().catch((error) => {
-            message.textContent = error.message;
-            message.classList.add("notice");
-        });
-        refreshLogs().catch((error) => {
-            document.getElementById("logs").textContent = error.message;
-        });
+        loadStatus();
+        loadLogs();
     })();
 </script>
 </body>
