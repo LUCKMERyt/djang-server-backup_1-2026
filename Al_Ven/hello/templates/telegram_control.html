@@ -6,7 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#11131a">
     <title>Управление сервером</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script>window.__SAVED_TG_HASH__ = window.location.hash;</script>
+    <script src="{% static 'js/telegram-web-app.js' %}"></script>
     <style>
         :root {
             color-scheme: dark;
@@ -129,16 +130,30 @@
 </main>
 <script>
     (() => {
-        const telegram = window.Telegram && window.Telegram.WebApp;
+                const telegram = window.Telegram && window.Telegram.WebApp;
         const message = document.getElementById("message");
         const buttons = [...document.querySelectorAll("button")];
-        const initData = telegram ? telegram.initData : "";
 
-        if (telegram && initData) {
+        function extractInitData() {
+            if (telegram && telegram.initData) { return telegram.initData; }
+            const hash = (window.location.hash || window.__SAVED_TG_HASH__ || "").replace(/^#/, "");
+            if (hash) {
+                const params = new URLSearchParams(hash);
+                if (params.get("tgWebAppData")) { return params.get("tgWebAppData"); }
+            }
+            try {
+                const stored = JSON.parse(sessionStorage.getItem("__telegram__initParams") || "{}");
+                if (stored.tgWebAppData) { return stored.tgWebAppData; }
+            } catch (_) {}
+            return "";
+        }
+        const initData = extractInitData();
+
+        if (initData) {
             telegram.ready();
             telegram.expand();
         } else {
-            message.textContent = "Откройте панель через Telegram-бота.";
+            message.textContent = "DEBUG: tg=" + Boolean(telegram) + " | initLen=" + (initData ? initData.length : 0) + " | hash=" + window.location.hash.slice(0, 60) + " | url=" + window.location.href;
             message.classList.add("notice");
             buttons.forEach((button) => { button.disabled = true; });
             return;

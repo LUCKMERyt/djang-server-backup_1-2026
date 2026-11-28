@@ -131,12 +131,11 @@ def _authorize_request(request):
             {"error": "Mini App не настроен: проверьте TELEGRAM_BOT_TOKEN и TELEGRAM_ALLOWED_USER_IDS в .env."},
             status=503,
         )
-    except PermissionError:
+    except PermissionError as exc:
         return None, JsonResponse(
-            {"error": "Откройте панель через Telegram-бота с разрешённого аккаунта."},
+            {"error": str(exc)},
             status=401,
         )
-
 
 def _run_server_action(action):
     if action not in SERVER_ACTIONS:
